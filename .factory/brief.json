@@ -1,0 +1,12 @@
+{
+  "slug": "scan-count-pad",
+  "title": "Scan Count Pad",
+  "territory": "utilities",
+  "user": "A single-location shop or maker that needs to count or adjust stock at the shelf with a phone or Bluetooth scanner, even when connectivity is poor.",
+  "smallest_useful_product": "Offline PWA: import SKU/barcode CSV, choose a count session, scan or tap quantity, flag unknowns and variance, then export adjustments as CSV.",
+  "success_measure": "A pilot completes a 100-SKU count at least 40% faster than spreadsheet entry and resolves 95% of unknown scans before export.",
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "constraints": "Camera permission only while scanning; local-first storage and CSV import/export; never treat a scanned code as authoritative without user reconciliation.",
+  "non_goals": ["POS", "supplier ordering", "live multi-site inventory", "camera-based AI recognition"]
+}

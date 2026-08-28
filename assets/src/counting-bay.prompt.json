@@ -1,0 +1,10 @@
+{
+  "asset": "counting-bay.png",
+  "date": "2026-08-28",
+  "generator": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image (Azure AI Foundry)",
+  "size": "1536x1024",
+  "quality": "high",
+  "prompt": "Use case: stylized-concept. Asset type: wide PWA onboarding illustration. A surreal editorial stockroom at night where deep cobalt shelving folds into an impossible staircase; neat unbranded cream cartons and small hardware bins carry blank paper barcode-like tick labels; one handheld scanner rests on a counting clipboard and casts a narrow vermilion beam; composition weighted to the right with calm dark negative space on the left; tactile cut-paper, screenprint grain and dimensional paper-set photography; warm cream, ink black, cobalt blue, signal vermilion, tiny mint accents; crisp legible object silhouettes, dramatic raking light, no people, no readable text, no logos, no brands, no watermark, no UI screenshot, no floating numbers, no QR codes.",
+  "review": "Accepted: coherent impossible staircase/shelf geometry, useful left negative space, unbranded objects, clean scanner silhouette, no readable text or watermark. Tiny label ticks are intentionally abstract and do not encode real products."
+}
