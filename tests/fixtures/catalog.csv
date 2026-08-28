@@ -1,0 +1,4 @@
+sku,barcode,name,expected
+BOLT-01,8901001,Brass bolts,10
+TAPE-02,8901002,Paper tape,4
+BOX-03,8901003,Small boxes,8

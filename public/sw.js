@@ -1,8 +1,20 @@
-const VERSION = 'scan-count-pad-v1';
-const SHELL = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/counting-bay.webp'];
+const VERSION = 'scan-count-pad-v3';
+const SHELL = ['/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/counting-bay.webp'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(SHELL)));
+  event.waitUntil((async () => {
+    const cache = await caches.open(VERSION);
+    const indexResponse = await fetch('/index.html', { cache: 'reload' });
+    const html = await indexResponse.clone().text();
+    const builtAssets = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)].map((match) => match[1]);
+    await Promise.all([...SHELL, ...builtAssets].map(async (url) => {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Could not precache ${url}`);
+      await cache.put(url, response);
+    }));
+    await cache.put('/index.html', indexResponse.clone());
+    await cache.put('/', indexResponse);
+  })());
   self.skipWaiting();
 });
 

@@ -57,10 +57,10 @@ function shell(content: string): string {
 }
 
 function licenseDialog(): string {
-  return `<dialog id="license-dialog" class="modal">
+  return `<dialog id="license-dialog" class="modal" aria-labelledby="license-heading">
     <form method="dialog" class="modal-close"><button aria-label="Close license window">×</button></form>
     <p class="eyebrow">One-time bench license</p>
-    <h2>Keep every count on this device</h2>
+    <h2 id="license-heading">Keep every count on this device</h2>
     <p>The free pad completes and exports a full count. A <strong>$19 one-time unlock</strong> keeps an unlimited session archive and supports this focused utility.</p>
     ${license.valid ? `<p class="license-good"><span aria-hidden="true">✓</span> This bench is unlocked.</p>` : `<a class="primary-button full" href="${checkoutUrl}">Buy the $19 unlock</a>`}
     ${license.token && !license.valid ? `<p class="notice">${license.reason === 'offline' ? 'License check will retry when online.' : 'This license is no longer active.'}</p>` : ''}
@@ -74,8 +74,8 @@ function licenseDialog(): string {
 }
 
 function cameraDialog(): string {
-  return `<dialog id="camera-dialog" class="modal camera-modal">
-    <p class="eyebrow">Camera barcode scan</p><h2>Point at one barcode</h2>
+  return `<dialog id="camera-dialog" class="modal camera-modal" aria-labelledby="camera-heading">
+    <p class="eyebrow">Camera barcode scan</p><h2 id="camera-heading">Point at one barcode</h2>
     <video id="camera-video" autoplay muted playsinline aria-label="Live camera view for barcode scanning"></video>
     <p id="camera-status" class="notice">Starting camera…</p>
     <button type="button" class="secondary-button full" data-close-camera>Stop camera</button>
@@ -83,9 +83,9 @@ function cameraDialog(): string {
 }
 
 function newItemDialog(): string {
-  return `<dialog id="new-item-dialog" class="modal">
+  return `<dialog id="new-item-dialog" class="modal" aria-labelledby="new-item-heading">
     <form method="dialog" class="modal-close"><button aria-label="Close new item window">×</button></form>
-    <p class="eyebrow">Reconcile unknown</p><h2>Add it to this catalog</h2>
+    <p class="eyebrow">Reconcile unknown</p><h2 id="new-item-heading">Add it to this catalog</h2>
     <form id="new-item-form" class="stack-form">
       <label for="new-name">Product name</label><input id="new-name" name="name" required>
       <label for="new-sku">SKU</label><input id="new-sku" name="sku" required>
@@ -415,7 +415,15 @@ async function init(): Promise<void> {
   if (token) { license = await verifyLicense(token); render(); announce(license.valid ? 'Purchase restored. Bench unlocked.' : 'License could not be verified.'); }
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register('/sw.js').then((registration) => {
-      registration.addEventListener('updatefound', () => { const toast = document.querySelector<HTMLElement>('#update-toast'); if (toast) toast.hidden = false; });
+      registration.addEventListener('updatefound', () => {
+        const installing = registration.installing;
+        installing?.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            const toast = document.querySelector<HTMLElement>('#update-toast');
+            if (toast) toast.hidden = false;
+          }
+        });
+      });
     }).catch(() => undefined);
   }
 }
