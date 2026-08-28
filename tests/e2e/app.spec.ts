@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-test('@claim:csv-export @claim:scanner-input @claim:unknown-reconcile completes a count and exports its reviewed rows', async ({ page }) => {
+test('@claim:csv-export @claim:unknown-reconcile completes a count and exports its reviewed rows', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Count the shelf');
   await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
@@ -52,8 +52,11 @@ test('has no serious accessibility violations on onboarding and legal pages', as
   expect(errors).toEqual([]);
 });
 
-test('@claim:offline-reload reloads the app shell after the first visit', async ({ page, context }) => {
+test('@claim:offline-reload @claim:data-persistence reloads saved demo data after the first visit', async ({ page, context }) => {
   await page.goto('/demo');
+  await page.locator('#scan-input').fill('8901001');
+  await page.locator('#scan-input').press('Enter');
+  await expect(page.locator('[data-product-row]').filter({ hasText: 'Brass bolts' }).locator('input[name=count]')).toHaveValue('119');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
@@ -68,11 +71,12 @@ test('@claim:offline-reload reloads the app shell after the first visit', async 
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Friday bay A sample');
   await expect(page.getByLabel('Demo mode')).toBeVisible();
+  await expect(page.locator('[data-product-row]').filter({ hasText: 'Brass bolts' }).locator('input[name=count]')).toHaveValue('119');
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Count the shelf');
 });
 
-test('@claim:validated-quantity shows duplicate SKU recovery and rejects invalid scanner quantities', async ({ page }) => {
+test('@claim:validated-quantity @claim:scanner-input shows duplicate SKU recovery and rejects invalid scanner quantities', async ({ page }) => {
   await page.goto('/');
   await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
   await page.getByRole('button', { name: 'Import and review' }).click();
@@ -153,7 +157,7 @@ test('@claim:camera-local requests the camera only on demand and stops its track
   expect([...origins]).toEqual(['http://127.0.0.1:4173']);
 });
 
-test('@claim:license-unlock caches a valid license and honors Retry-After', async ({ page }) => {
+test('@claim:license-unlock @claim:paid-price caches a valid license and honors Retry-After', async ({ page }) => {
   let response: 'valid' | 'limited' = 'valid';
   let requests = 0;
   await page.route('https://api.sociobot.in/**', async (route) => {
@@ -164,6 +168,26 @@ test('@claim:license-unlock caches a valid license and honors Retry-After', asyn
   await page.goto('/?license=sample-valid-license');
   await expect(page.getByRole('button', { name: 'Bench unlocked' })).toBeVisible();
   expect(page.url()).not.toContain('license=');
+  await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
+  await page.getByRole('button', { name: 'Import and review' }).click();
+  await page.getByRole('button', { name: 'Start counting' }).click();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Finish count' }).click();
+  await page.getByRole('button', { name: 'Start another count' }).click();
+  await page.locator('#session-name').fill('Second licensed count');
+  await page.getByRole('button', { name: 'Start counting' }).click();
+  expect(await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('scan-count-pad', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    return new Promise<number>((resolve, reject) => {
+      const request = database.transaction('local-data').objectStore('local-data').get('app');
+      request.onsuccess = () => resolve(request.result.sessions.length);
+      request.onerror = () => reject(request.error);
+    });
+  })).toBe(2);
   await page.reload();
   expect(requests).toBe(1);
 
@@ -172,5 +196,22 @@ test('@claim:license-unlock caches a valid license and honors Retry-After', asyn
   await page.goto('/?license=sample-rate-limited-license');
   await page.getByRole('button', { name: 'Unlock' }).click();
   await expect(page.getByText('Too many license checks. Wait a minute, then try again.')).toBeVisible();
+  await expect(page.getByText('$19 one-time unlock', { exact: false })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Buy the $19 unlock' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/scan-count-pad/checkout');
   expect(requests).toBe(2);
+});
+
+test('@claim:backup-restore exports and restores a local JSON backup', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
+  await page.getByRole('button', { name: 'Import and review' }).click();
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export backup' }).click();
+  const stream = await (await downloadPromise).createReadStream();
+  let backup = '';
+  for await (const chunk of stream) backup += chunk.toString();
+  expect(JSON.parse(backup).data.products).toHaveLength(3);
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.locator('#restore-json').setInputFiles('tests/fixtures/backup.json');
+  await expect(page.getByRole('heading', { name: '1 items ready to count' })).toBeVisible();
 });

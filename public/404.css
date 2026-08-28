@@ -1,0 +1,5 @@
+html { background: #10131c; color: #f4eeda; font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 12vh auto; padding: 2rem; border-top: 5px solid #ff674d; background: #191e2a; }
+h1 { margin: .25rem 0 1rem; font-size: clamp(2.5rem, 8vw, 4.5rem); line-height: 1; text-transform: uppercase; }
+a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px; background: #ff674d; color: #1a0d09; font-weight: 800; }
+a:focus-visible { outline: 3px solid #f1c35a; outline-offset: 3px; }

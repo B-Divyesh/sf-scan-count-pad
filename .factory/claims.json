@@ -1,0 +1,93 @@
+[
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit",
+    "where": "landing facts and README",
+    "test": "npm run test:e2e -- --grep @claim:offline-reload",
+    "sandbox": "fresh browser context; install service worker; switch the context offline; reload"
+  },
+  {
+    "id": "csv-export",
+    "claim": "Exports reviewed adjustments as CSV",
+    "where": "landing page, summary, and README",
+    "test": "npm run test:e2e -- --grep @claim:csv-export",
+    "sandbox": "fresh catalog; scan known and unknown items; finish; assert downloaded row content"
+  },
+  {
+    "id": "formula-safe-export",
+    "claim": "Catalog text is inert when the CSV opens in a spreadsheet",
+    "where": "README and security behavior",
+    "test": "npm run test:unit -- --testNamePattern @claim:formula-safe-export",
+    "sandbox": "export catalog text beginning with equals, plus, minus, and at signs; assert apostrophe neutralization"
+  },
+  {
+    "id": "scanner-input",
+    "claim": "Accepts manual and keyboard-wedge barcode input",
+    "where": "landing page and README",
+    "test": "npm run test:e2e -- --grep @claim:scanner-input",
+    "sandbox": "fresh catalog; submit barcode input and observe the matching count"
+  },
+  {
+    "id": "data-persistence",
+    "claim": "Catalogs and counts survive reloads in IndexedDB",
+    "where": "count workspace and README",
+    "test": "npm run test:e2e -- --grep @claim:data-persistence",
+    "sandbox": "change a sample count; reload online and offline; assert the changed count remains"
+  },
+  {
+    "id": "unknown-reconcile",
+    "claim": "Unknown scans do not change stock until a person reconciles them",
+    "where": "count workspace and README",
+    "test": "npm run test:e2e -- --grep @claim:unknown-reconcile",
+    "sandbox": "scan an unknown code; match it manually; assert only the chosen item changes"
+  },
+  {
+    "id": "validated-quantity",
+    "claim": "Scanner quantities are whole numbers from 1 to 9999",
+    "where": "quantity input",
+    "test": "npm run test:e2e -- --grep @claim:validated-quantity",
+    "sandbox": "keyboard-wedge scans with 10000 and 1.5; assert visible errors and no count mutation"
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "Demo changes never touch real counts",
+    "where": "demo banner and README",
+    "test": "npm run test:e2e -- --grep @claim:demo-isolation",
+    "sandbox": "fresh context at /demo; assert seeded active count and demo-only IndexedDB namespace"
+  },
+  {
+    "id": "local-data",
+    "claim": "Counts stay in this browser",
+    "where": "landing facts, footer, privacy, and README",
+    "test": "npm run test:e2e -- --grep @claim:local-data",
+    "sandbox": "fresh demo; count an item while recording every request origin"
+  },
+  {
+    "id": "camera-local",
+    "claim": "Camera access starts on request, stops after a read, and frames are not uploaded",
+    "where": "count workspace, privacy, and README",
+    "test": "npm run test:e2e -- --grep @claim:camera-local --project=chromium",
+    "sandbox": "instrumented MediaStream and BarcodeDetector; assert request count, stopped track, and same-origin traffic"
+  },
+  {
+    "id": "license-unlock",
+    "claim": "A valid Sociobot license unlocks the session archive and its verdict is cached for one day",
+    "where": "license dialog, terms, and README",
+    "test": "npm run test:e2e -- --grep @claim:license-unlock --project=chromium",
+    "sandbox": "mock Sociobot valid and 429 responses; assert URL cleanup, cached unlock, and Retry-After feedback"
+  },
+  {
+    "id": "paid-price",
+    "claim": "The unlimited on-device session archive costs $19 once",
+    "where": "license dialog, terms, and README",
+    "test": "npm run test:e2e -- --grep @claim:paid-price --project=chromium",
+    "sandbox": "open the locked license dialog; assert the exact price, purchase model, and Sociobot checkout URL"
+  },
+  {
+    "id": "backup-restore",
+    "claim": "Exports and restores a local JSON backup",
+    "where": "catalog controls and README",
+    "test": "npm run test:e2e -- --grep @claim:backup-restore",
+    "sandbox": "fresh catalog; inspect exported JSON; restore the shipped backup fixture and assert its catalog"
+  }
+]

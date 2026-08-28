@@ -129,7 +129,7 @@ function emptyPage(): string {
   return shell(`<main id="main">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">A quiet tool for loud stockrooms</p>
+        <p class="eyebrow">Shelf counting for small shops</p>
         <h1>Count the shelf.<br><em>Not the software.</em></h1>
         <p class="lede">For small shops counting stock at the shelf with a phone or Bluetooth scanner.</p>
         <div class="hero-actions"><a class="primary-button" href="/demo">Try it with sample data</a><span>Opens a separate sample count.</span></div>

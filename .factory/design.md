@@ -58,4 +58,6 @@ Prompt sheet:
 
 Generated 2026-08-28 with the Param Factory Azure image deployment via `/opt/fleet/lib/gen-image.sh`. Original PNG and prompt sidecar live in `assets/src/`; shipped WebP is optimized to less than 300 KB. Generated imagery is disclosed in the product footer.
 
+The 1200×630 social preview is a center crop of the same generated original. No new subject matter or third-party asset was introduced.
+
 App icons are original SVG geometry authored for this project: stacked shelf ticks crossed by one scanner beam. They are exported locally to PNG for the manifest.
