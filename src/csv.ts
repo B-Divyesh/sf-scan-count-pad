@@ -61,8 +61,9 @@ export function productsFromCsv(text: string): Product[] {
   return products;
 }
 
-function escapeCell(value: unknown): string {
-  const text = String(value ?? '');
+function escapeCell(value: unknown, neutralizeFormula = false): string {
+  const raw = String(value ?? '');
+  const text = neutralizeFormula && /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
   return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
@@ -72,5 +73,5 @@ export function adjustmentsCsv(products: Product[], session: CountSession): stri
     const counted = session.counts[product.id] ?? 0;
     return [product.sku, product.barcode, product.name, product.expected, counted, counted - product.expected];
   });
-  return [header, ...rows].map((row) => row.map(escapeCell).join(',')).join('\r\n');
+  return [header, ...rows].map((row, rowIndex) => row.map((cell, columnIndex) => escapeCell(cell, rowIndex > 0 && columnIndex < 3)).join(',')).join('\r\n');
 }

@@ -88,9 +88,9 @@ async function mainFlow(browser) {
   await page.getByRole('heading', { level: 1 }).click();
   await page.keyboard.type('abc');
   await page.keyboard.press('Enter');
-  await page.getByText(/Paper roll · \+10000 · now 10000/).waitFor();
-  results.observations.globalScannerBypassesQuantityMax = true;
+  await page.locator('#scan-quantity-error').filter({ hasText: 'whole quantity from 1 to 9999' }).waitFor();
   const paperInput = page.locator('[data-product-row]').filter({ hasText: 'Paper roll' }).locator('input[name=count]');
+  equal(await paperInput.inputValue(), '', 'global scanner rejects quantity above 9999');
   await paperInput.fill('2');
   await paperInput.press('Tab');
   await page.locator('[data-product-row]').filter({ hasText: 'Paper roll' }).getByText('On target').waitFor();
@@ -118,6 +118,8 @@ async function mainFlow(browser) {
   await page.locator('#new-sku').fill('ZERO');
   await page.getByRole('button', { name: 'Add and apply count' }).click();
   ok((await page.locator('#announcer').textContent()).includes('unique SKU'), 'duplicate new SKU announced');
+  ok(await page.locator('#new-item-error').isVisible(), 'duplicate new SKU has a visible error');
+  equal(await page.locator('#new-sku').getAttribute('aria-invalid'), 'true', 'duplicate new SKU marks its field invalid');
   await page.locator('#new-sku').fill('NEW-SKU');
   await page.locator('#new-expected').fill('1');
   await page.getByRole('button', { name: 'Add and apply count' }).click();
@@ -151,8 +153,8 @@ async function mainFlow(browser) {
   const csvDownload = await downloadPromise;
   const exported = await readFile(await csvDownload.path(), 'utf8');
   ok(exported.includes('MAX,9999,"Nuts, steel",9999,9999,0'), 'export contains correct quoted adjustment');
-  ok(exported.includes('=2+2'), 'formula-leading cell is exported without neutralization');
-  results.observations.csvFormulaNotNeutralized = true;
+  ok(exported.includes("'=2+2"), 'formula-leading cell is neutralized in CSV');
+  ok(!exported.includes('\r\n=2+2'), 'CSV contains no executable formula-leading row');
 
   await page.getByRole('button', { name: 'Start another count' }).click();
   const backupPromise = page.waitForEvent('download');

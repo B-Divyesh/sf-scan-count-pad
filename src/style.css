@@ -49,6 +49,9 @@ label { color: var(--muted); font-weight: 700; }
 .step-mark { color: var(--muted); }
 .lede { max-width: 65ch; color: #d4cebc; font-size: clamp(1.08rem, 2vw, 1.25rem); line-height: 1.55; }
 .fine-print { color: var(--muted); font-size: .85rem; }
+.demo-banner { display: flex; align-items: center; justify-content: center; gap: 24px; min-height: 52px; padding: 4px 20px; border-bottom: 1px solid #725b23; background: #2a2515; color: var(--amber); }
+.demo-banner span { display: flex; gap: 12px; }
+.demo-banner .text-button { color: var(--ink); }
 
 .site-header { position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; min-height: 80px; padding: 12px max(24px, calc((100vw - 1440px) / 2)); border-bottom: 1px solid #343a48; background: color-mix(in srgb, var(--night) 92%, transparent); }
 .wordmark { display: flex; align-items: center; gap: 12px; color: var(--ink); font-family: var(--display); font-weight: 900; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
@@ -79,6 +82,8 @@ footer a { margin-left: 12px; }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, var(--night) 2%, var(--night) 28%, rgba(16,19,28,.74) 48%, rgba(16,19,28,.05) 76%); pointer-events: none; }
 .hero-copy { position: relative; z-index: 2; align-self: center; max-width: 760px; padding: 72px 24px 72px max(24px, calc((100vw - 1440px) / 2)); }
 .hero h1 em { color: var(--signal); font-style: normal; }
+.hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 28px; }
+.hero-actions span { color: var(--muted); font-size: .9rem; }
 .hero-art { position: absolute; inset: 0 0 0 27%; }
 .hero-art img { width: 100%; height: 100%; object-fit: cover; object-position: center; filter: saturate(.9) contrast(1.08); }
 .feature-ticks { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 0; margin: 28px 0 0; list-style: none; color: var(--ink); font-size: .9rem; font-weight: 760; }
@@ -92,6 +97,9 @@ footer a { margin-left: 12px; }
 .file-drop input { grid-column: 1 / -1; width: 100%; padding: 8px; }
 .file-drop input::file-selector-button { min-height: 40px; margin-right: 12px; border: 0; padding: 8px 12px; background: var(--cobalt); color: white; font-weight: 750; }
 .form-error { grid-column: 1 / -1; margin: 0; color: var(--danger); font-weight: 700; }
+.form-error:empty { display: none; }
+.scan-error { margin-top: 8px; }
+input[aria-invalid="true"] { border-color: var(--danger); box-shadow: inset 4px 0 var(--danger); }
 .how { display: block; }
 .how ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; padding: 0; list-style: none; background: #343a48; }
 .how li { min-height: 140px; padding: 24px; background: var(--night); }
@@ -218,6 +226,7 @@ footer a { margin-left: 12px; }
 }
 
 @media (max-width: 700px) {
+  .demo-banner { align-items: flex-start; flex-direction: column; gap: 0; padding: 8px 16px; }
   .site-header { min-height: 68px; padding: 10px 16px; }
   .wordmark span { font-size: .78rem; }
   .wordmark svg { width: 32px; height: 32px; }

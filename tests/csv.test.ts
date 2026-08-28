@@ -26,4 +26,15 @@ describe('adjustment CSV', () => {
     expect(csv).toContain('A,100,A thing,4,6,2');
     expect(csv).not.toContain('Untouched');
   });
+
+  it('@claim:formula-safe-export neutralizes every spreadsheet formula prefix in catalog text', () => {
+    const products = [
+      { id: '1', sku: '=2+2', barcode: '+123', name: '-Formula', expected: 4 },
+      { id: '2', sku: '@SUM(A1)', barcode: '', name: 'Safe name', expected: 1 },
+    ];
+    const csv = adjustmentsCsv(products, { id: 's', name: 'Count', startedAt: '', updatedAt: '', counts: { '1': 2, '2': 0 }, unknowns: [], history: [] });
+    expect(csv).toContain("'=2+2,'+123,'-Formula,4,2,-2");
+    expect(csv).toContain("'@SUM(A1),,Safe name,1,0,-1");
+    expect(csv).not.toMatch(/\r\n[=+\-@]/);
+  });
 });

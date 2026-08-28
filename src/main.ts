@@ -1,10 +1,12 @@
 import './style.css';
 import { adjustmentsCsv, productsFromCsv } from './csv';
-import { loadData, saveData } from './db';
+import { clearData, loadData, saveData } from './db';
 import { cachedLicense, captureLicense, checkoutUrl, restoreLicense, verifyLicense, type LicenseState } from './license';
+import { validScanQuantity } from './quantity';
 import { EMPTY_DATA, type AppData, type CountSession, type Product, type UnknownScan } from './types';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
+const demoMode = location.pathname.replace(/\/$/, '') === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
 let data: AppData = structuredClone(EMPTY_DATA);
 let license: LicenseState = cachedLicense();
 let lastResult: { kind: 'good' | 'warn'; text: string; eventId?: string } | undefined;
@@ -16,11 +18,31 @@ let scannerTimer = 0;
 let pendingUnknownId = '';
 let cameraStream: MediaStream | undefined;
 let cameraFrame = 0;
+let scanQuantityError = '';
 
 const esc = (value: unknown): string => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]!));
 const now = () => new Date().toISOString();
 const formatDate = (value: string) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 const activeSession = (): CountSession | undefined => data.sessions.find((session) => session.id === data.activeSessionId);
+
+function sampleData(): AppData {
+  const timestamp = now();
+  return {
+    products: [
+      { id: 'demo-bolts', sku: 'BOLT-01', barcode: '8901001', name: 'Brass bolts', expected: 120 },
+      { id: 'demo-tape', sku: 'TAPE-02', barcode: '8901002', name: 'Paper tape', expected: 18 },
+      { id: 'demo-boxes', sku: 'BOX-03', barcode: '8901003', name: 'Small shipping boxes', expected: 32 },
+      { id: 'demo-gloves', sku: 'GLOVE-04', barcode: '8901004', name: 'Work gloves', expected: 12 },
+    ],
+    sessions: [{
+      id: 'demo-session', name: 'Friday bay A sample', startedAt: timestamp, updatedAt: timestamp,
+      counts: { 'demo-bolts': 118, 'demo-tape': 18, 'demo-boxes': 34 },
+      unknowns: [{ id: 'demo-unknown', code: '8901999', quantity: 2, createdAt: timestamp, resolved: false }],
+      history: [],
+    }],
+    activeSessionId: 'demo-session',
+  };
+}
 
 function announce(message: string): void {
   const region = document.querySelector<HTMLElement>('#announcer');
@@ -28,14 +50,15 @@ function announce(message: string): void {
 }
 
 async function persist(): Promise<void> {
-  try { await saveData(data); }
+  try { await saveData(data, demoMode); }
   catch { announce('Could not save on this device. Export a backup before closing.'); }
 }
 
 function shell(content: string): string {
   return `
+    ${demoMode ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved to your real counts</strong><span><button type="button" class="text-button" data-reset-demo>Reset demo</button><button type="button" class="text-button" data-start-real>Start for real</button></span></aside>` : ''}
     <header class="site-header">
-      <a class="wordmark" href="/" data-nav aria-label="Scan Count Pad home">
+      <a class="wordmark" href="${demoMode ? '/demo' : '/'}" data-nav aria-label="Scan Count Pad home">
         <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 8h38v7H5zm0 13h28v7H5zm0 13h38v7H5z"/><path class="beam" d="m2 41 43-20 2 5L4 46z"/></svg>
         <span>Scan / Count / Pad</span>
       </a>
@@ -47,7 +70,7 @@ function shell(content: string): string {
     ${content}
     <footer>
       <p>Counts stay on this device. <span aria-hidden="true">◇</span> <a href="/privacy" data-nav>Privacy</a> <a href="/terms" data-nav>Terms</a></p>
-      <p>Original generated shelf artwork · Built for the back room, not the board room.</p>
+      <p>Original generated shelf artwork · Built by Param Factory · v1.0.1</p>
     </footer>
     <div id="announcer" class="sr-only" aria-live="polite"></div>
     <div id="update-toast" class="toast" hidden><span>An app update is ready.</span><button type="button" data-reload>Reload</button></div>
@@ -63,7 +86,7 @@ function licenseDialog(): string {
     <h2 id="license-heading">Keep every count on this device</h2>
     <p>The free pad completes and exports a full count. A <strong>$19 one-time unlock</strong> keeps an unlimited session archive and supports this focused utility.</p>
     ${license.valid ? `<p class="license-good"><span aria-hidden="true">✓</span> This bench is unlocked.</p>` : `<a class="primary-button full" href="${checkoutUrl}">Buy the $19 unlock</a>`}
-    ${license.token && !license.valid ? `<p class="notice">${license.reason === 'offline' ? 'License check will retry when online.' : 'This license is no longer active.'}</p>` : ''}
+    ${license.token && !license.valid ? `<p class="notice">${license.reason === 'offline' ? 'License check will retry when online.' : license.reason === 'rate_limited' ? 'Too many license checks. Wait a minute, then try again.' : 'This license is no longer active.'}</p>` : ''}
     <form id="restore-form" class="stack-form">
       <label for="license-token">Have a license? Paste it here</label>
       <input id="license-token" name="token" autocomplete="off" required>
@@ -88,7 +111,8 @@ function newItemDialog(): string {
     <p class="eyebrow">Reconcile unknown</p><h2 id="new-item-heading">Add it to this catalog</h2>
     <form id="new-item-form" class="stack-form">
       <label for="new-name">Product name</label><input id="new-name" name="name" required>
-      <label for="new-sku">SKU</label><input id="new-sku" name="sku" required>
+      <label for="new-sku">SKU</label><input id="new-sku" name="sku" required aria-describedby="new-item-error">
+      <p id="new-item-error" class="form-error" role="alert"></p>
       <label for="new-expected">Expected quantity</label><input id="new-expected" name="expected" type="number" min="0" step="1" value="0" required>
       <button class="primary-button" type="submit">Add and apply count</button>
     </form>
@@ -107,8 +131,9 @@ function emptyPage(): string {
       <div class="hero-copy">
         <p class="eyebrow">A quiet tool for loud stockrooms</p>
         <h1>Count the shelf.<br><em>Not the software.</em></h1>
-        <p class="lede">Import your stock sheet, scan with the gear you have, and leave with a clean adjustment CSV—even when the Wi-Fi disappears.</p>
-        <ul class="feature-ticks"><li>Bluetooth scanner ready</li><li>Camera barcode scan</li><li>Local and offline</li></ul>
+        <p class="lede">For small shops counting stock at the shelf with a phone or Bluetooth scanner.</p>
+        <div class="hero-actions"><a class="primary-button" href="/demo">Try it with sample data</a><span>Opens a separate sample count.</span></div>
+        <ul class="feature-ticks"><li>Works offline after the first visit</li><li>Counts stay in this browser</li><li>Full count and CSV export are free</li></ul>
       </div>
       <picture class="hero-art"><img src="/art/counting-bay.webp" width="1152" height="768" alt="Surreal blue stockroom shelves folding upward beside a clipboard and a red scanner beam" fetchpriority="high" decoding="async"></picture>
     </section>
@@ -148,7 +173,7 @@ function sessionPage(session: CountSession): string {
       <div class="scan-column">
         <section class="scan-deck" aria-labelledby="scan-heading">
           <div class="scan-title"><div><p class="step-mark">Scanner ready</p><h2 id="scan-heading">Scan a code</h2></div><span class="pulse-label"><i></i>Listening</span></div>
-          <form id="scan-form"><label for="scan-input">Barcode or SKU</label><div class="scan-line"><input id="scan-input" name="code" inputmode="numeric" autocomplete="off" autocapitalize="off" enterkeyhint="done" required placeholder="Scan or type, then Enter"><label class="quantity-label" for="scan-quantity">Qty<input id="scan-quantity" type="number" min="1" max="9999" step="1" value="${scanQuantity}"></label><button class="primary-button" type="submit">Count</button></div></form>
+          <form id="scan-form" novalidate><label for="scan-input">Barcode or SKU</label><div class="scan-line"><input id="scan-input" name="code" inputmode="numeric" autocomplete="off" autocapitalize="off" enterkeyhint="done" required placeholder="Scan or type, then Enter"><label class="quantity-label" for="scan-quantity">Qty<input id="scan-quantity" type="number" min="1" max="9999" step="1" value="${scanQuantity}" aria-describedby="scan-quantity-error" ${scanQuantityError ? 'aria-invalid="true"' : ''}></label><button class="primary-button" type="submit">Count</button></div><p id="scan-quantity-error" class="form-error scan-error" role="alert">${esc(scanQuantityError)}</p></form>
           <div class="scan-tools"><button type="button" class="quiet-button" data-camera>Use camera</button><span>Tip: press <kbd>/</kbd> to return here</span></div>
           ${lastResult ? `<div class="last-result ${lastResult.kind}" role="status"><span>${lastResult.kind === 'good' ? '✓' : '?'}</span><strong>${esc(lastResult.text)}</strong>${lastResult.eventId ? `<button type="button" data-undo="${lastResult.eventId}">Undo</button>` : ''}</div>` : ''}
         </section>
@@ -192,6 +217,7 @@ function summaryPage(session: CountSession): string {
 
 function render(): void {
   const path = location.pathname.replace(/\/$/, '') || '/';
+  document.title = path === '/privacy' ? 'Privacy — Scan Count Pad' : path === '/terms' ? 'Terms — Scan Count Pad' : demoMode ? 'Demo — Scan Count Pad' : 'Scan Count Pad — offline shelf counts';
   if (path === '/privacy' || path === '/terms') app.innerHTML = legalPage(path.slice(1) as 'privacy' | 'terms');
   else if (!data.products.length) app.innerHTML = emptyPage();
   else app.innerHTML = activeSession() ? sessionPage(activeSession()!) : readyPage();
@@ -199,14 +225,17 @@ function render(): void {
 }
 
 function bindEvents(): void {
-  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); history.pushState({}, '', link.pathname); render(); scrollTo(0, 0); }));
+  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); history.pushState({}, '', link.pathname); render(); scrollTo(0, 0); const heading = document.querySelector<HTMLElement>('h1'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); announce(document.title); }));
+  document.querySelector('[data-reset-demo]')?.addEventListener('click', resetDemo);
+  document.querySelector('[data-start-real]')?.addEventListener('click', startForReal);
   document.querySelector('[data-open-license]')?.addEventListener('click', () => (document.querySelector<HTMLDialogElement>('#license-dialog')?.showModal()));
   document.querySelector('[data-reload]')?.addEventListener('click', () => location.reload());
   document.querySelector('#restore-form')?.addEventListener('submit', handleRestoreLicense);
   document.querySelector('#csv-form')?.addEventListener('submit', handleCsvImport);
   document.querySelector('#session-form')?.addEventListener('submit', handleStartSession);
   document.querySelector('#scan-form')?.addEventListener('submit', (event) => { event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const code = new FormData(form).get('code')?.toString() || ''; processScan(code, scanQuantity); });
-  document.querySelector<HTMLInputElement>('#scan-quantity')?.addEventListener('change', (event) => { scanQuantity = Math.max(1, Number((event.target as HTMLInputElement).value) || 1); });
+  document.querySelector<HTMLInputElement>('#scan-quantity')?.addEventListener('input', (event) => { scanQuantity = Number((event.target as HTMLInputElement).value); scanQuantityError = ''; (event.target as HTMLInputElement).removeAttribute('aria-invalid'); document.querySelector('#scan-quantity-error')!.textContent = ''; });
+  document.querySelector<HTMLInputElement>('#new-sku')?.addEventListener('input', (event) => { (event.target as HTMLInputElement).removeAttribute('aria-invalid'); const error = document.querySelector('#new-item-error'); if (error) error.textContent = ''; });
   document.querySelector<HTMLInputElement>('#product-search')?.addEventListener('input', (event) => { search = (event.target as HTMLInputElement).value; const focusAt = search.length; render(); const field = document.querySelector<HTMLInputElement>('#product-search'); field?.focus(); field?.setSelectionRange(focusAt, focusAt); });
   document.querySelectorAll<HTMLButtonElement>('[data-adjust]').forEach((button) => button.addEventListener('click', () => adjustProduct(button.dataset.product!, Number(button.dataset.adjust))));
   document.querySelectorAll<HTMLFormElement>('.set-count-form').forEach((form) => form.addEventListener('submit', (event) => { event.preventDefault(); const value = Number(new FormData(form).get('count')); setProductCount(form.dataset.product!, value); }));
@@ -267,6 +296,14 @@ async function processScan(rawCode: string, quantity = 1): Promise<void> {
   const session = activeSession();
   const code = rawCode.trim();
   if (!session || !code || session.completedAt) return;
+  if (!validScanQuantity(quantity)) {
+    scanQuantityError = 'Enter a whole quantity from 1 to 9999. Nothing was counted.';
+    lastResult = { kind: 'warn', text: scanQuantityError };
+    render();
+    setTimeout(() => document.querySelector<HTMLInputElement>('#scan-quantity')?.focus(), 0);
+    return;
+  }
+  scanQuantityError = '';
   const product = data.products.find((item) => item.sku.toLowerCase() === code.toLowerCase() || Boolean(item.barcode && item.barcode.toLowerCase() === code.toLowerCase()));
   session.updatedAt = now();
   if (product) {
@@ -333,11 +370,36 @@ async function handleNewItem(event: Event): Promise<void> {
   const form = event.currentTarget as HTMLFormElement; const values = new FormData(form); const session = activeSession(); const unknown = session?.unknowns.find((item) => item.id === pendingUnknownId);
   if (!session || !unknown) return;
   const sku = values.get('sku')?.toString().trim() || ''; const name = values.get('name')?.toString().trim() || ''; const expected = Number(values.get('expected'));
-  if (!sku || !name || data.products.some((product) => [product.sku, product.barcode].some((value) => value.toLowerCase() === sku.toLowerCase()))) { announce('Use a unique SKU and a product name.'); return; }
+  const skuInput = form.elements.namedItem('sku') as HTMLInputElement;
+  const error = form.querySelector<HTMLElement>('#new-item-error')!;
+  if (!sku || !name) { error.textContent = 'Enter a product name and SKU.'; announce(error.textContent); return; }
+  if (data.products.some((product) => [product.sku, product.barcode].some((value) => value.toLowerCase() === sku.toLowerCase()))) {
+    error.textContent = `SKU “${sku}” is already in the catalog. Enter a unique SKU.`;
+    skuInput.setAttribute('aria-invalid', 'true');
+    skuInput.focus();
+    announce(error.textContent);
+    return;
+  }
+  if (!Number.isSafeInteger(expected) || expected < 0) { error.textContent = 'Expected quantity must be a whole number of zero or more.'; announce(error.textContent); return; }
   const product: Product = { id: crypto.randomUUID(), sku, barcode: unknown.code === sku ? '' : unknown.code, name, expected };
   data.products.push(product); session.counts[product.id] = unknown.quantity; unknown.resolved = true; unknown.resolution = product.id; session.updatedAt = now();
   session.history.push({ id: crypto.randomUUID(), at: session.updatedAt, type: 'reconcile', productId: product.id, delta: unknown.quantity, code: unknown.code });
   await persist(); document.querySelector<HTMLDialogElement>('#new-item-dialog')?.close(); render(); announce(`${name} added and counted.`);
+}
+
+async function resetDemo(): Promise<void> {
+  data = sampleData();
+  lastResult = undefined;
+  scanQuantity = 1;
+  scanQuantityError = '';
+  await persist();
+  render();
+  announce('Demo reset to the original sample count.');
+}
+
+async function startForReal(): Promise<void> {
+  try { await clearData(true); } catch { /* The separate demo database remains isolated. */ }
+  location.assign('/');
 }
 
 async function undoEvent(eventId: string): Promise<void> {
@@ -410,7 +472,8 @@ function handleGlobalScanner(event: KeyboardEvent): void {
 
 async function init(): Promise<void> {
   const token = captureLicense(); license = cachedLicense();
-  try { data = await loadData(); } catch { data = structuredClone(EMPTY_DATA); }
+  try { data = await loadData(demoMode); } catch { data = structuredClone(EMPTY_DATA); }
+  if (demoMode && !data.products.length) { data = sampleData(); await persist(); }
   render();
   if (token) { license = await verifyLicense(token); render(); announce(license.valid ? 'Purchase restored. Bench unlocked.' : 'License could not be verified.'); }
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
