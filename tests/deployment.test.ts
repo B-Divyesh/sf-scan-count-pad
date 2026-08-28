@@ -11,6 +11,11 @@ interface StaticWebAppConfig {
 const config = JSON.parse(readFileSync('public/staticwebapp.config.json', 'utf8')) as StaticWebAppConfig;
 
 describe('deployment response policy', () => {
+  it('does not define routes that Azure normalizes as duplicates', () => {
+    const normalized = config.routes.map((route) => route.route.replace(/\/$/, '') || '/');
+    expect(new Set(normalized).size).toBe(normalized.length);
+  });
+
   it('sets immutable caching for content-hashed assets', () => {
     const assetRoute = config.routes.find((route) => route.route === '/assets/*');
     expect(assetRoute?.headers?.['Cache-Control']).toBe('public, max-age=31536000, immutable');
