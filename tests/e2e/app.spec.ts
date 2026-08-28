@@ -32,12 +32,19 @@ test('completes a count from import through reconciliation and export', async ({
 });
 
 test('has no serious accessibility violations on onboarding and legal pages', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   let results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
   await page.goto('/privacy');
   results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+  await page.goto('/terms');
+  results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+  expect(errors).toEqual([]);
 });
 
 test('reloads the app shell offline after installation', async ({ page, context }) => {

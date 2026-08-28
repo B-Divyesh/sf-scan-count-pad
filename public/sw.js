@@ -1,4 +1,4 @@
-const VERSION = 'scan-count-pad-v3';
+const VERSION = 'scan-count-pad-v4';
 const SHELL = ['/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/counting-bay.webp'];
 
 self.addEventListener('install', (event) => {
@@ -31,10 +31,10 @@ self.addEventListener('fetch', (event) => {
       const copy = response.clone();
       caches.open(VERSION).then((cache) => cache.put(event.request, copy));
       return response;
-    }).catch(async () => (await caches.match(event.request)) || (await caches.match('/index.html')) || caches.match('/offline.html')));
+    }).catch(async () => (await caches.match(event.request, { ignoreVary: true })) || (await caches.match('/index.html', { ignoreVary: true })) || caches.match('/offline.html', { ignoreVary: true })));
     return;
   }
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
+  event.respondWith(caches.match(event.request, { ignoreVary: true }).then((cached) => cached || fetch(event.request).then((response) => {
     if (response.ok) caches.open(VERSION).then((cache) => cache.put(event.request, response.clone()));
     return response;
   })));
