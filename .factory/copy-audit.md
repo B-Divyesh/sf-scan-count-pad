@@ -5,6 +5,8 @@ Audited 2026-09-05 against the complete rendered landing page and persistent sit
 | Copy | Words | Result |
 | --- | ---: | --- |
 | Scan / Count / Pad | 4 | Pass — product name |
+| Demo | 1 | Pass — primary navigation |
+| Privacy | 1 | Pass — primary navigation |
 | Ready offline | 2 | Pass |
 | Unlock | 1 | Pass — literal license action |
 | Shelf counting for small shops | 5 | Pass |
@@ -32,7 +34,7 @@ Audited 2026-09-05 against the complete rendered landing page and persistent sit
 | Terms | 1 | Pass |
 | Original generated shelf artwork | 4 | Pass |
 | Built by Param Factory | 4 | Pass |
-| v1.0.2 | 1 | Pass |
+| v1.0.3 | 1 | Pass |
 
 No audited sentence exceeds 22 words. No audited sentence contains a banned marketing word, metaphor, or mood heading.
 

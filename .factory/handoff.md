@@ -1,54 +1,74 @@
-# Scan Count Pad — review 2 handoff
+# Count stock at the shelf — repair 3 handoff
 
-**Status: FAIL**
+**Status: PASS**
 
-- Work order: `scan-count-pad-review-2`
+- Work order: `scan-count-pad-repair-3`
 - Job: count stock at the shelf.
 - Audience: small shops using phones or Bluetooth scanners.
-- First action: **Try it with sample data**.
-- Implementation SHA: `8a8b8a15bffbe0bb260d02a5e4cd5fcb736dc168`
-- Documentation baseline: `8da5ae125ebba2c33cca400f39d26a5ac4ecbb90`
+- First action before scrolling: **Try it with sample data**.
+- Implementation SHA: `cfb1a0f4d7ad16d3e998f55cd98acb49fb45399b` (`fix: add accessible header navigation`)
+- Verification baseline SHA: `6397af2148aaebcc8a82f0fbd794f4acc8a62605` (`test: cover real data through demo reset`)
 - Live URL: <https://scan-count-pad.sociobot.in>
-- Deployment ID reviewed: `a0b3f3cd-6e89-4199-94d1-7fc108528492`
-- Findings: 1 medium (`R2-01`: missing `nav` landmark and header navigation)
-- Untested public claims: 0
-- Full report: [review-2.md](review-2.md)
+- Deployment ID: `1a835c86-c744-4368-8896-ea764a2c052c`
+- Deployment result: succeeded; HTTPS root returned 200.
+- Findings remaining: 0 product findings; 0 untested public claims.
 
-## What was verified
+## What changed
 
-- Fresh desktop and phone first screens stated the job and audience and showed **Try it with sample data** before scrolling.
-- The one-click demo showed four realistic products, three existing counts, one unknown, the persistent demo label, Reset demo, and Start for real.
-- Demo changes and reset did not alter a separately created real count. Leaving the demo cleared its records.
-- Browser link, Back, and Forward navigation restored exact scroll positions, focused the new heading, and announced the route on desktop and phone.
-- All 13 declared claim commands passed separately from a clean clone. `npm test` passed 15 unit/config and 20 browser tests; lint, type checking, audit, and build passed.
-- The independent harness passed 53 assertions. The 100-item flow counted 100 items, resolved 5 of 5 unknowns, and exported 100 rows. The instrumented camera stopped its track after one read.
-- Axe reported zero violations across 15 tested states. The factory URL check found no browser errors. Reduced motion, keyboard focus, 200% text, legal routes, and the designed 404 passed.
-- The PWA installed without manifest errors, showed its update notice, and reloaded root and Privacy offline.
-- Lighthouse mobile scored 100/100/100/100 with 1.2 s LCP.
-- All 23 served files matched the local candidate build. Security headers, immutable asset caching, license response behavior, rate limiting, and checkout redirect passed.
-- Every earlier finding R1-01 and V-01 through V-06 is independently resolved.
-- The strict review found `R2-01`: the shared header has no semantic `nav` or header links to Demo and Privacy. This fails the accessibility and site-structure contracts; add a labelled primary navigation landmark to all shared pages, then retest keyboard and phone behavior.
+- Added `<nav aria-label="Primary">` with **Demo** and **Privacy** to the shared app header. The wordmark remains the Home link.
+- Added the same header navigation, skip link, footer, touch targets, and focus treatment to the designed 404 page.
+- Kept the Demo link as a normal navigation so entering demo starts its separate storage mode with a clean page load.
+- Bumped the service-worker cache to `scan-count-pad-v10` so installed apps receive the updated shell.
+- Added a keyboard regression covering Demo and Privacy on root, demo, privacy, terms, and 404 screens at desktop and 390 px widths.
+- Strengthened the demo-isolation claim regression: it creates a real count, changes and resets the sample count, exits demo, and confirms the real count still has its original value.
 
-## Run again
+## Clean verification
 
-```sh
-npm ci
-npm audit --audit-level=low
-npm run lint
-npm run typecheck
-npm test
-npm run build
+From a fresh clone of verification baseline `6397af2`:
+
+```text
+npm ci                       PASS, 0 vulnerabilities
+npm audit --audit-level=low  PASS, 0 vulnerabilities
+npm run lint                 PASS
+npm run typecheck            PASS
+npm test                     PASS, 15 unit/config + 22 browser tests
+npm run build                PASS, dist/ produced
 ```
 
-Then run each command in `.factory/claims.json` separately. With `npm run preview -- --host 127.0.0.1` running, the additional repository harnesses are:
+All 13 commands in `.factory/claims.json` were run separately and passed: offline reload, CSV export, formula-safe export, scanner input, persistence, unknown reconciliation, quantity validation, demo isolation, local data, camera-local handling, license unlock, paid price, and backup restore. Every claim continues to have one tagged outcome test.
 
-```sh
-node .factory/qa-independent.mjs
-node .factory/qa-scale.mjs
-node .factory/qa-camera.mjs
-node .factory/qa-live-pwa.mjs
-```
+The production build is 36,614 bytes of JavaScript (12.29 KB gzip), 18,730 bytes of CSS (4.93 KB gzip), and a 43,072-byte hero image. The initial JavaScript and CSS remain inside the product budget.
 
-## Remaining field validation
+## Current live checks
 
-Physical Bluetooth scanner and field camera combinations still need shop-floor testing. The brief's 40%-faster measure needs a human comparison against spreadsheet entry. These are not public claims. The required repair is R2-01, documented in [review-2.md](review-2.md).
+- Fresh 1440×900 desktop and 390×844 phone contexts opened the HTTPS root at scroll position zero. Both showed `Count stock at the shelf`, the small-shop phone/scanner audience sentence, and **Try it with sample data** without horizontal overflow or console errors.
+- Both fresh contexts had exactly one labelled primary navigation landmark containing **Demo** and **Privacy**. Root, Demo, Privacy, Terms, and the deliberate 404 each had the same navigation landmark. Keyboard activation reaches Demo, then Privacy; Privacy's heading receives focus.
+- The sample flow showed `Friday bay A sample`, four products, three populated counts, one unknown code, and the persistent demo banner. Brass bolts changed 118 → 119 → 118 after **Reset demo**. **Start for real** returned to the real workspace without sample data.
+- Playwright Axe found zero violations across root, demo, privacy, terms, and the deliberate 404 on both desktop and phone (10 scanned states).
+- `/opt/fleet/lib/verify-url.sh` passed against the live root: 823 ms load, no browser errors, title, `lang`, one `h1`, `main`, image alt text, and button labels all passed.
+- The live PWA harness found no manifest or installability errors; cache `scan-count-pad-v10` contains the shell and assets; update discovery displayed the update toast; root and Privacy reloaded offline with the offline badge.
+- Live response checks confirm immutable hashed assets, no-store `sw.js`, `application/manifest+json`, CSP with `frame-ancestors 'none'`, camera-only Permissions Policy, HSTS, nosniff, strict referrer policy, and `X-Frame-Options: DENY`.
+- Local candidate and live HTTPS responses matched byte-for-byte for `index.html`, the JavaScript, CSS, `sw.js`, `404.html`, and `404.css`. The designed unknown route deliberately returned HTTP 404 and matched `404.html`.
+- A normal invalid license request returned 200 with `Cache-Control: no-store`. A fresh product-specific burst first returned 429 on request 30 with `Retry-After: 3`. The hosted checkout returned 303; no purchase was attempted.
+
+## Earlier finding disposition
+
+| Item | Current disposition |
+| --- | --- |
+| R2-01 header navigation landmark | Resolved. The shared app shell and 404 now have one labelled primary `<nav>` with keyboard-operable Demo and Privacy links. Live desktop and phone checks cover every route. |
+| R1-01 Back/Forward focus and announcement | Resolved. The current clean browser suite still passes the Back/Forward heading-focus and polite-announcement regression. |
+| V-01 license rate limit | Resolved. Current live burst first returned 429 on request 30 with `Retry-After: 3`. |
+| V-02 CSV formula injection | Resolved. The dedicated clean-clone claim neutralized `=`, `+`, `-`, and `@` text. |
+| V-03 duplicate SKU recovery | Resolved. The clean suite confirms visible error, invalid state, and focused SKU field. |
+| V-04 scanner quantity bounds | Resolved. The clean suite accepts 9999 and rejects 10000 and 1.5 without mutation. |
+| V-05 immutable asset caching | Resolved. The deployed hashed JavaScript response has one-year immutable caching. |
+| V-06 headers and manifest MIME | Resolved. Current live headers and `application/manifest+json` match the deployment policy. |
+
+## Tool limits and field validation
+
+- `npx @axe-core/cli` was attempted against the live site, but its Selenium Chrome process could not find a Chrome binary in this worker. The repository's Playwright Axe integration completed the live 10-state scan with zero violations.
+- Lighthouse was attempted with the preinstalled Playwright Chromium. Its direct launch and a remote-debugging fallback both failed in this worker (`Unable to connect to Chrome` / crashed tab), so no new Lighthouse score is claimed. The live browser load check, bundle sizes, and all functional browser checks above passed.
+- Physical Bluetooth scanner hardware and field phone-camera combinations still need shop-floor validation. The keyboard-wedge and instrumented camera paths pass.
+- The brief's 40%-faster target needs a timed human comparison with spreadsheet entry. It is not public copy or a claimed benchmark.
+
+This is a static local-first PWA. It has no product-owned backend, tenant database, health endpoint, or server-side restart persistence boundary; backend-only checks do not apply.
