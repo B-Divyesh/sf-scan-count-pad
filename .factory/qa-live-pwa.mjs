@@ -67,10 +67,10 @@ await licensePage.route('https://api.sociobot.in/**', async (route) => {
   });
 });
 await licensePage.goto('https://scan-count-pad.sociobot.in/?license=qa-valid-token');
-await licensePage.getByRole('button', { name: 'Bench unlocked' }).waitFor();
+await licensePage.getByRole('button', { name: 'License active' }).waitFor();
 const cleanedUrl = licensePage.url();
 await licensePage.reload();
-await licensePage.getByRole('button', { name: 'Bench unlocked' }).waitFor();
+await licensePage.getByRole('button', { name: 'License active' }).waitFor();
 console.log(JSON.stringify({ license: { cleanedUrl, verifyRequests, cachedAcrossReload: true } }, null, 2));
 await licenseContext.close();
 await browser.close();

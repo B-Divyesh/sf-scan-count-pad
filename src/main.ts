@@ -64,7 +64,7 @@ function shell(content: string): string {
       </a>
       <div class="header-actions">
         <span class="connection ${online ? 'online' : 'offline'}"><i></i>${online ? 'Ready offline' : 'Offline'}</span>
-        <button class="quiet-button" type="button" data-open-license>${license.valid ? 'Bench unlocked' : 'Unlock'}</button>
+        <button class="quiet-button" type="button" data-open-license>${license.valid ? 'License active' : 'Unlock'}</button>
       </div>
     </header>
     ${content}
@@ -82,10 +82,10 @@ function shell(content: string): string {
 function licenseDialog(): string {
   return `<dialog id="license-dialog" class="modal" aria-labelledby="license-heading">
     <form method="dialog" class="modal-close"><button aria-label="Close license window">×</button></form>
-    <p class="eyebrow">One-time bench license</p>
+    <p class="eyebrow">One-time license</p>
     <h2 id="license-heading">Keep every count on this device</h2>
-    <p>The free pad completes and exports a full count. A <strong>$19 one-time unlock</strong> keeps an unlimited session archive and supports this focused utility.</p>
-    ${license.valid ? `<p class="license-good"><span aria-hidden="true">✓</span> This bench is unlocked.</p>` : `<a class="primary-button full" href="${checkoutUrl}">Buy the $19 unlock</a>`}
+    <p>The free pad completes and exports a full count. A <strong>$19 one-time license</strong> keeps an unlimited session archive on this device.</p>
+    ${license.valid ? `<p class="license-good"><span aria-hidden="true">✓</span> This device has an active license.</p>` : `<a class="primary-button full" href="${checkoutUrl}">Buy the $19 license</a>`}
     ${license.token && !license.valid ? `<p class="notice">${license.reason === 'offline' ? 'License check will retry when online.' : license.reason === 'rate_limited' ? 'Too many license checks. Wait a minute, then try again.' : 'This license is no longer active.'}</p>` : ''}
     <form id="restore-form" class="stack-form">
       <label for="license-token">Have a license? Paste it here</label>
@@ -121,7 +121,7 @@ function newItemDialog(): string {
 
 function legalPage(kind: 'privacy' | 'terms'): string {
   const privacy = `<main id="main" class="legal"><p class="eyebrow">Plain-language policy</p><h1>Privacy</h1><p class="lede">Your catalog and counts belong to you. Scan Count Pad stores them in this browser's IndexedDB and does not send them to us.</p><h2>What stays local</h2><p>Imported product names, SKUs, barcodes, expected quantities, sessions, and scan history remain on your device. Exports are created locally.</p><h2>Camera and network</h2><p>Camera access starts only after you press “Use camera” and stops when the camera window closes or a barcode is read. The app does not upload camera frames. A network request is made only to verify a pasted or purchased Sociobot license; the service receives the license token and standard request metadata.</p><h2>Your choices</h2><p>Use the backup export to take your data with you. Clear this site's storage in your browser to delete local data. Contact <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a> with policy questions.</p>`;
-  const terms = `<main id="main" class="legal"><p class="eyebrow">The working agreement</p><h1>Terms</h1><p class="lede">Scan Count Pad is a counting aid. Review every variance before you import its CSV into another system.</p><h2>Use of the utility</h2><p>You are responsible for catalog accuracy, physical counts, backups, and downstream stock adjustments. The software is provided “as is” without a guarantee that every scanner, barcode, or browser will be supported.</p><h2>One-time unlock</h2><p>The $19 purchase unlocks session history for this product. Sociobot's hosted checkout is used; Dodo is the merchant of record. Refunds are handled through the merchant and a refunded, expired, or revoked license stops unlocking paid features. Core counting and CSV export remain available.</p><h2>Acceptable use</h2><p>Do not attempt to interfere with the service or share a license outside your own shop. These terms are governed by applicable law. Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a>.</p>`;
+  const terms = `<main id="main" class="legal"><p class="eyebrow">Product terms</p><h1>Terms</h1><p class="lede">Scan Count Pad is a counting aid. Review every variance before you import its CSV into another system.</p><h2>Use of the utility</h2><p>You are responsible for catalog accuracy, physical counts, backups, and downstream stock adjustments. The software is provided “as is” without a guarantee that every scanner, barcode, or browser will be supported.</p><h2>One-time license</h2><p>The $19 purchase unlocks session history for this product. Sociobot's hosted checkout is used; Dodo is the merchant of record. Refunds are handled through the merchant and a refunded, expired, or revoked license stops unlocking paid features. Core counting and CSV export remain available.</p><h2>Acceptable use</h2><p>Do not attempt to interfere with the service or share a license outside your own shop. These terms are governed by applicable law. Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a>.</p>`;
   return shell(`${kind === 'privacy' ? privacy : terms}<p><a class="secondary-button" href="/" data-nav>Back to the counting pad</a></p></main>`);
 }
 
@@ -130,7 +130,7 @@ function emptyPage(): string {
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Shelf counting for small shops</p>
-        <h1>Count the shelf.<br><em>Not the software.</em></h1>
+        <h1>Count stock at<br><em>the shelf.</em></h1>
         <p class="lede">For small shops counting stock at the shelf with a phone or Bluetooth scanner.</p>
         <div class="hero-actions"><a class="primary-button" href="/demo">Try it with sample data</a><span>Opens a separate sample count.</span></div>
         <ul class="feature-ticks"><li>Works offline after the first visit</li><li>Counts stay in this browser</li><li>Full count and CSV export are free</li></ul>
@@ -138,7 +138,7 @@ function emptyPage(): string {
       <picture class="hero-art"><img src="/art/counting-bay.webp" width="1152" height="768" alt="Surreal blue stockroom shelves folding upward beside a clipboard and a red scanner beam" fetchpriority="high" decoding="async"></picture>
     </section>
     <section class="import-bay" aria-labelledby="import-heading">
-      <div><p class="step-mark">01 / Bring the shelf list</p><h2 id="import-heading">Start with a CSV</h2><p>Required columns: <code>sku</code> and <code>name</code>. Optional: <code>barcode</code> and <code>expected</code>.</p></div>
+      <div><p class="step-mark">01 / Import the catalog</p><h2 id="import-heading">Start with a CSV</h2><p>Required columns: <code>sku</code> and <code>name</code>. Optional: <code>barcode</code> and <code>expected</code>.</p></div>
       <form id="csv-form" class="file-drop">
         <label for="csv-file"><span>Choose catalog CSV</span><small>Saved only on this device</small></label>
         <input id="csv-file" name="catalog" type="file" accept=".csv,text/csv" required>
@@ -146,19 +146,19 @@ function emptyPage(): string {
       </form>
       <p id="import-error" class="form-error" role="alert"></p>
     </section>
-    <section class="how"><p class="step-mark">The whole loop</p><ol><li><b>01</b><span>Import the SKU sheet</span></li><li><b>02</b><span>Scan or tap counts</span></li><li><b>03</b><span>Resolve unknown codes</span></li><li><b>04</b><span>Export adjustments</span></li></ol></section>
+    <section class="how"><p class="step-mark">How it works</p><ol><li><b>01</b><span>Import the SKU sheet</span></li><li><b>02</b><span>Scan or tap counts</span></li><li><b>03</b><span>Resolve unknown codes</span></li><li><b>04</b><span>Export adjustments</span></li></ol></section>
   </main>`);
 }
 
 function readyPage(): string {
   const recent = data.sessions[0];
   return shell(`<main id="main" class="ready-page">
-    <div class="ready-intro"><p class="eyebrow">Catalog on this device</p><h1>${data.products.length} items ready to count</h1><p class="lede">Name this shelf walk, then leave the cursor in the scan field. Most Bluetooth scanners send Enter for you.</p></div>
+    <div class="ready-intro"><p class="eyebrow">Catalog on this device</p><h1>${data.products.length} items ready to count</h1><p class="lede">Name this count, then leave the cursor in the scan field. Most Bluetooth scanners send Enter for you.</p></div>
     <section class="start-panel" aria-labelledby="new-heading"><p class="step-mark">New count</p><h2 id="new-heading">Open a counting session</h2>
       <form id="session-form" class="start-form"><label for="session-name">Session name</label><div><input id="session-name" name="name" value="${esc(new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))} shelf count" required maxlength="80"><button class="primary-button" type="submit">Start counting</button></div></form>
       ${recent ? `<div class="recent"><span>Latest</span><strong>${esc(recent.name)}</strong><small>${recent.completedAt ? 'Completed' : 'In progress'} · ${formatDate(recent.updatedAt)}</small><button class="secondary-button" type="button" data-open-session="${recent.id}">${recent.completedAt ? 'View summary' : 'Continue'}</button></div>` : ''}
     </section>
-    <section class="manage-panel"><div><p class="step-mark">Catalog & backup</p><h2>Data stays in your hands</h2><p>Replace the catalog from CSV or download a JSON backup of everything stored here.</p></div><div class="button-row"><label class="secondary-button file-button" for="replace-csv">Replace catalog<input id="replace-csv" type="file" accept=".csv,text/csv"></label><button type="button" class="secondary-button" data-export-backup>Export backup</button><label class="secondary-button file-button" for="restore-json">Restore backup<input id="restore-json" type="file" accept="application/json,.json"></label></div><p id="manage-error" class="form-error" role="alert"></p></section>
+    <section class="manage-panel"><div><p class="step-mark">Catalog & backup</p><h2>Manage your local data</h2><p>Replace the catalog from CSV or download a JSON backup of everything stored here.</p></div><div class="button-row"><label class="secondary-button file-button" for="replace-csv">Replace catalog<input id="replace-csv" type="file" accept=".csv,text/csv"></label><button type="button" class="secondary-button" data-export-backup>Export backup</button><label class="secondary-button file-button" for="restore-json">Restore backup<input id="restore-json" type="file" accept="application/json,.json"></label></div><p id="manage-error" class="form-error" role="alert"></p></section>
   </main>`);
 }
 
@@ -178,7 +178,7 @@ function sessionPage(session: CountSession): string {
           ${lastResult ? `<div class="last-result ${lastResult.kind}" role="status"><span>${lastResult.kind === 'good' ? '✓' : '?'}</span><strong>${esc(lastResult.text)}</strong>${lastResult.eventId ? `<button type="button" data-undo="${lastResult.eventId}">Undo</button>` : ''}</div>` : ''}
         </section>
         ${unknownsPanel(unresolved)}
-        <section class="finish-panel"><div><p class="step-mark">When the shelf is done</p><h2>Review, then finish</h2><p>${unresolved.length ? `${unresolved.length} unknown ${unresolved.length === 1 ? 'code needs' : 'codes need'} a decision.` : 'Every unknown scan has a decision.'}</p></div><button class="primary-button" type="button" data-complete ${unresolved.length ? 'disabled aria-describedby="finish-note"' : ''}>Finish count</button>${unresolved.length ? '<small id="finish-note">Resolve or ignore unknown codes first.</small>' : ''}</section>
+        <section class="finish-panel"><div><p class="step-mark">Finish this count</p><h2>Review, then finish</h2><p>${unresolved.length ? `${unresolved.length} unknown ${unresolved.length === 1 ? 'code needs' : 'codes need'} a decision.` : 'Every unknown scan has a decision.'}</p></div><button class="primary-button" type="button" data-complete ${unresolved.length ? 'disabled aria-describedby="finish-note"' : ''}>Finish count</button>${unresolved.length ? '<small id="finish-note">Resolve or ignore unknown codes first.</small>' : ''}</section>
       </div>
       <section class="count-sheet" aria-labelledby="sheet-heading">
         <div class="sheet-head"><div><p class="step-mark">Live count sheet</p><h2 id="sheet-heading">${countedCount} of ${data.products.length} touched</h2></div><label class="search-label" for="product-search">Find item<input id="product-search" type="search" value="${esc(search)}" placeholder="Name, SKU, barcode"></label></div>
@@ -204,13 +204,13 @@ function productRow(product: Product, session: CountSession): string {
 
 function unknownsPanel(unknowns: UnknownScan[]): string {
   if (!unknowns.length) return `<section class="unknown-panel calm"><p class="step-mark">Unknown queue</p><h2>Nothing waiting</h2><p>Unrecognized scans appear here instead of changing stock silently.</p></section>`;
-  return `<section class="unknown-panel" aria-labelledby="unknown-heading"><div class="unknown-title"><div><p class="step-mark">Needs a human</p><h2 id="unknown-heading">Unknown scans <span>${unknowns.length}</span></h2></div></div><ul>${unknowns.map((item) => `<li><div><code>${esc(item.code)}</code><span>Scanned × ${item.quantity}</span></div><form class="resolve-form" data-unknown="${item.id}"><label for="match-${item.id}">Match product</label><select id="match-${item.id}" name="product" required><option value="">Choose an item</option>${data.products.map((product) => `<option value="${product.id}">${esc(product.name)} · ${esc(product.sku)}</option>`).join('')}</select><button class="secondary-button" type="submit">Apply ${item.quantity}</button></form><div class="unknown-actions"><button type="button" class="text-button" data-add-unknown="${item.id}">Add as new item</button><button type="button" class="text-button danger" data-ignore="${item.id}">Ignore this code</button></div></li>`).join('')}</ul></section>`;
+  return `<section class="unknown-panel" aria-labelledby="unknown-heading"><div class="unknown-title"><div><p class="step-mark">Review required</p><h2 id="unknown-heading">Unknown scans <span>${unknowns.length}</span></h2></div></div><ul>${unknowns.map((item) => `<li><div><code>${esc(item.code)}</code><span>Scanned × ${item.quantity}</span></div><form class="resolve-form" data-unknown="${item.id}"><label for="match-${item.id}">Match product</label><select id="match-${item.id}" name="product" required><option value="">Choose an item</option>${data.products.map((product) => `<option value="${product.id}">${esc(product.name)} · ${esc(product.sku)}</option>`).join('')}</select><button class="secondary-button" type="submit">Apply ${item.quantity}</button></form><div class="unknown-actions"><button type="button" class="text-button" data-add-unknown="${item.id}">Add as new item</button><button type="button" class="text-button danger" data-ignore="${item.id}">Ignore this code</button></div></li>`).join('')}</ul></section>`;
 }
 
 function summaryPage(session: CountSession): string {
   const touched = data.products.filter((product) => session.counts[product.id] !== undefined);
   const variants = touched.filter((product) => session.counts[product.id] !== product.expected);
-  return shell(`<main id="main" class="summary-page"><div class="summary-hero"><p class="eyebrow">Count complete</p><h1>${esc(session.name)}</h1><p class="lede">The shelf is reconciled locally. Export the adjustments, then review them before changing your inventory system.</p><div class="summary-stats"><div><strong>${touched.length}</strong><span>items touched</span></div><div><strong>${variants.length}</strong><span>with variance</span></div><div><strong>${session.unknowns.length}</strong><span>unknown scans reviewed</span></div></div><div class="button-row"><button type="button" class="primary-button" data-export-csv>Export adjustments CSV</button><button type="button" class="secondary-button" data-new-session>Start another count</button></div></div>
+  return shell(`<main id="main" class="summary-page"><div class="summary-hero"><p class="eyebrow">Count complete</p><h1>${esc(session.name)}</h1><p class="lede">This count is saved locally. Export the adjustments, then review them before changing your inventory system.</p><div class="summary-stats"><div><strong>${touched.length}</strong><span>items touched</span></div><div><strong>${variants.length}</strong><span>with variance</span></div><div><strong>${session.unknowns.length}</strong><span>unknown scans reviewed</span></div></div><div class="button-row"><button type="button" class="primary-button" data-export-csv>Export adjustments CSV</button><button type="button" class="secondary-button" data-new-session>Start another count</button></div></div>
     <section class="variance-sheet"><p class="step-mark">Adjustment preview</p><h2>${variants.length ? 'Check these variances' : 'No variances found'}</h2>${variants.length ? `<ul>${variants.map((product) => { const counted = session.counts[product.id]; const delta = counted - product.expected; return `<li><div><strong>${esc(product.name)}</strong><span>${esc(product.sku)}</span></div><span>${product.expected} → ${counted}</span><b>${delta > 0 ? '+' : ''}${delta}</b></li>`; }).join('')}</ul>` : '<p>Every touched item matched its expected quantity.</p>'}<p class="notice">Untouched products are omitted from the adjustment CSV; they are not silently treated as zero.</p></section>
   </main>`);
 }

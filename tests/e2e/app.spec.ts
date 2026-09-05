@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('@claim:csv-export @claim:unknown-reconcile completes a count and exports its reviewed rows', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Count the shelf');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Count stock at');
   await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
   await page.getByRole('button', { name: 'Import and review' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('3 items ready');
@@ -62,7 +62,7 @@ test('browser Back and Forward focus and announce the restored route heading', a
 
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('heading', { level: 1, name: /Count the shelf/ })).toBeFocused();
+  await expect(page.getByRole('heading', { level: 1, name: /Count stock at the shelf/ })).toBeFocused();
   await expect(page.locator('#announcer')).toHaveText('Scan Count Pad — offline shelf counts');
 
   await page.goForward();
@@ -92,7 +92,7 @@ test('@claim:offline-reload @claim:data-persistence reloads saved demo data afte
   await expect(page.getByLabel('Demo mode')).toBeVisible();
   await expect(page.locator('[data-product-row]').filter({ hasText: 'Brass bolts' }).locator('input[name=count]')).toHaveValue('119');
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Count the shelf');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Count stock at');
 });
 
 test('@claim:validated-quantity @claim:scanner-input shows duplicate SKU recovery and rejects invalid scanner quantities', async ({ page }) => {
@@ -185,7 +185,7 @@ test('@claim:license-unlock @claim:paid-price caches a valid license and honors 
     else await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) });
   });
   await page.goto('/?license=sample-valid-license');
-  await expect(page.getByRole('button', { name: 'Bench unlocked' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'License active' })).toBeVisible();
   expect(page.url()).not.toContain('license=');
   await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
   await page.getByRole('button', { name: 'Import and review' }).click();
@@ -215,8 +215,8 @@ test('@claim:license-unlock @claim:paid-price caches a valid license and honors 
   await page.goto('/?license=sample-rate-limited-license');
   await page.getByRole('button', { name: 'Unlock' }).click();
   await expect(page.getByText('Too many license checks. Wait a minute, then try again.')).toBeVisible();
-  await expect(page.getByText('$19 one-time unlock', { exact: false })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Buy the $19 unlock' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/scan-count-pad/checkout');
+  await expect(page.getByText('$19 one-time license', { exact: false })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Buy the $19 license' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/scan-count-pad/checkout');
   expect(requests).toBe(2);
 });
 
