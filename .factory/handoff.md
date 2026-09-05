@@ -8,6 +8,7 @@
 - First action before scrolling: **Try it with sample data**.
 - Implementation SHA: `cfb1a0f4d7ad16d3e998f55cd98acb49fb45399b` (`fix: add accessible header navigation`)
 - Verification baseline SHA: `6397af2148aaebcc8a82f0fbd794f4acc8a62605` (`test: cover real data through demo reset`)
+- Handoff report SHA: `e6765ceef169a22c6db59ebbf0ff302e9240ad62` (`docs: hand off navigation repair`)
 - Live URL: <https://scan-count-pad.sociobot.in>
 - Deployment ID: `1a835c86-c744-4368-8896-ea764a2c052c`
 - Deployment result: succeeded; HTTPS root returned 200.
