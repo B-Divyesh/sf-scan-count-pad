@@ -52,6 +52,25 @@ test('has no serious accessibility violations on onboarding and legal pages', as
   expect(errors).toEqual([]);
 });
 
+test('browser Back and Forward focus and announce the restored route heading', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('footer').getByRole('link', { name: 'Privacy' }).click();
+
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeFocused();
+  await expect(page.locator('#announcer')).toHaveText('Privacy — Scan Count Pad');
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { level: 1, name: /Count the shelf/ })).toBeFocused();
+  await expect(page.locator('#announcer')).toHaveText('Scan Count Pad — offline shelf counts');
+
+  await page.goForward();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeFocused();
+  await expect(page.locator('#announcer')).toHaveText('Privacy — Scan Count Pad');
+});
+
 test('@claim:offline-reload @claim:data-persistence reloads saved demo data after the first visit', async ({ page, context }) => {
   await page.goto('/demo');
   await page.locator('#scan-input').fill('8901001');

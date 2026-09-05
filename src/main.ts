@@ -224,8 +224,17 @@ function render(): void {
   bindEvents();
 }
 
+function completeRouteChange(resetScroll = false): void {
+  render();
+  if (resetScroll) scrollTo(0, 0);
+  const heading = document.querySelector<HTMLElement>('h1');
+  heading?.setAttribute('tabindex', '-1');
+  heading?.focus({ preventScroll: !resetScroll });
+  announce(document.title);
+}
+
 function bindEvents(): void {
-  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); history.pushState({}, '', link.pathname); render(); scrollTo(0, 0); const heading = document.querySelector<HTMLElement>('h1'); heading?.setAttribute('tabindex', '-1'); heading?.focus(); announce(document.title); }));
+  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); history.pushState({}, '', link.pathname); completeRouteChange(true); }));
   document.querySelector('[data-reset-demo]')?.addEventListener('click', resetDemo);
   document.querySelector('[data-start-real]')?.addEventListener('click', startForReal);
   document.querySelector('[data-open-license]')?.addEventListener('click', () => (document.querySelector<HTMLDialogElement>('#license-dialog')?.showModal()));
@@ -491,7 +500,7 @@ async function init(): Promise<void> {
   }
 }
 
-addEventListener('popstate', render);
+addEventListener('popstate', () => completeRouteChange());
 addEventListener('online', () => { online = true; render(); });
 addEventListener('offline', () => { online = false; render(); });
 addEventListener('keydown', handleGlobalScanner);
