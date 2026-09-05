@@ -1,6 +1,6 @@
 # Scan Count Pad — repair handoff
 
-**Status: PASS**
+**Status: PASS — independently reconfirmed 2026-09-05 UTC**
 
 - Work order: `scan-count-pad-repair-1`
 - Repaired baseline report: `a2a66dccdb940a44b85ffe3fee3764241b4df8b6`
@@ -9,6 +9,17 @@
 - Demo URL: <https://scan-count-pad.sociobot.in/demo>
 - Verified: 2026-08-28 UTC
 - Original independent report: [verification.md](verification.md)
+- Current independent report: [verification-2.md](verification-2.md)
+
+## Verification 2 handoff
+
+- Implementation candidate independently reviewed: `41f6bf2a7c2e20e4c0138a9d818eddbb212bb16a`.
+- Documentation/report commit independently reviewed: `fa7f5ff6fd5f00b059ba2099f56b78f425859c93`.
+- Result: **PASS**, with zero findings and zero untested public claims.
+- Fresh-clone quality gates passed: audit (0 vulnerabilities), lint, typecheck, 15 unit/config tests, 18 browser tests, build, and every command declared in `.factory/claims.json`.
+- The independent 53-assertion harness, 100-SKU simulation, camera lifecycle harness, live PWA/update/offline harness, `verify-url.sh`, and Playwright axe checks passed. The standalone axe CLI was blocked by its ChromeDriver/installed-Chromium version mismatch; the repository's Playwright axe integration ran instead and found no violations across six states.
+- Live parity: all 23 public build artifacts matched local candidate bytes. The rate limiter first returned `429` at request 31 with `Retry-After: 3`.
+- No product code was changed by this verification. The only remaining work is the existing field-pilot and real-hardware limitation documented below.
 
 ## Findings repaired
 
