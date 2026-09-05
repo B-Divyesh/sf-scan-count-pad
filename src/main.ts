@@ -20,6 +20,8 @@ let cameraStream: MediaStream | undefined;
 let cameraFrame = 0;
 let scanQuantityError = '';
 
+interface RouteHistoryState { scrollX?: number; scrollY?: number }
+
 const esc = (value: unknown): string => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]!));
 const now = () => new Date().toISOString();
 const formatDate = (value: string) => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -224,17 +226,17 @@ function render(): void {
   bindEvents();
 }
 
-function completeRouteChange(resetScroll = false): void {
+function completeRouteChange(scrollX = 0, scrollY = 0): void {
   render();
   const heading = document.querySelector<HTMLElement>('h1');
   heading?.setAttribute('tabindex', '-1');
   heading?.focus({ preventScroll: true });
-  if (resetScroll) scrollTo(0, 0);
+  scrollTo({ left: scrollX, top: scrollY, behavior: 'instant' });
   announce(document.title);
 }
 
 function bindEvents(): void {
-  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); history.pushState({}, '', link.pathname); completeRouteChange(true); }));
+  document.querySelectorAll<HTMLAnchorElement>('[data-nav]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); history.pushState({ scrollX: 0, scrollY: 0 } satisfies RouteHistoryState, '', link.pathname); completeRouteChange(); }));
   document.querySelector('[data-reset-demo]')?.addEventListener('click', resetDemo);
   document.querySelector('[data-start-real]')?.addEventListener('click', startForReal);
   document.querySelector('[data-open-license]')?.addEventListener('click', () => (document.querySelector<HTMLDialogElement>('#license-dialog')?.showModal()));
@@ -500,7 +502,12 @@ async function init(): Promise<void> {
   }
 }
 
-addEventListener('popstate', () => completeRouteChange());
+history.scrollRestoration = 'manual';
+addEventListener('scroll', () => history.replaceState({ ...(history.state || {}), scrollX, scrollY } satisfies RouteHistoryState, ''), { passive: true });
+addEventListener('popstate', (event) => {
+  const state = (event.state || {}) as RouteHistoryState;
+  completeRouteChange(state.scrollX, state.scrollY);
+});
 addEventListener('online', () => { online = true; render(); });
 addEventListener('offline', () => { online = false; render(); });
 addEventListener('keydown', handleGlobalScanner);

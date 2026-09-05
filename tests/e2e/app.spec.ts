@@ -73,6 +73,7 @@ test('browser Back and Forward focus and announce the restored route heading', a
 
   await page.goForward();
   await expect(page).toHaveURL(/\/privacy$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeFocused();
   await expect(page.locator('#announcer')).toHaveText('Privacy — Scan Count Pad');
 });
