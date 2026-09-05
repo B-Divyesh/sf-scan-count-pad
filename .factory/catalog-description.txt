@@ -1,0 +1,1 @@
+Count shelf stock offline with a phone or Bluetooth scanner, then export reviewed CSV adjustments.

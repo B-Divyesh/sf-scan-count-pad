@@ -1,4 +1,4 @@
-const VERSION = 'scan-count-pad-v5';
+const VERSION = 'scan-count-pad-v6';
 const SHELL = ['/offline.html', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png', '/art/counting-bay.webp'];
 
 self.addEventListener('install', (event) => {

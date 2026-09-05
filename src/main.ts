@@ -70,7 +70,7 @@ function shell(content: string): string {
     ${content}
     <footer>
       <p>Counts stay on this device. <span aria-hidden="true">◇</span> <a href="/privacy" data-nav>Privacy</a> <a href="/terms" data-nav>Terms</a></p>
-      <p>Original generated shelf artwork · Built by Param Factory · v1.0.1</p>
+      <p>Original generated shelf artwork · Built by Param Factory · v1.0.2</p>
     </footer>
     <div id="announcer" class="sr-only" aria-live="polite"></div>
     <div id="update-toast" class="toast" hidden><span>An app update is ready.</span><button type="button" data-reload>Reload</button></div>
