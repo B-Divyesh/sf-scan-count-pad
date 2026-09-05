@@ -166,15 +166,30 @@ test('@claim:validated-quantity @claim:scanner-input shows duplicate SKU recover
   await expect(page.locator('[data-product-row]').filter({ hasText: 'Brass bolts' }).locator('input[name=count]')).toHaveValue('2');
 });
 
-test('@claim:demo-isolation opens seeded sample data in a separate database', async ({ page }) => {
-  await page.goto('/demo');
+test('@claim:demo-isolation resets sample data without changing a real count', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
+  await page.getByRole('button', { name: 'Import and review' }).click();
+  await page.locator('#session-name').fill('Real shelf count');
+  await page.getByRole('button', { name: 'Start counting' }).click();
+  await page.locator('#scan-input').fill('8901001');
+  await page.locator('#scan-input').press('Enter');
+  const realCount = page.locator('[data-product-row]').filter({ hasText: 'Brass bolts' }).locator('input[name=count]');
+  await expect(realCount).toHaveValue('1');
+
+  await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Demo' }).click();
   await expect(page.getByLabel('Demo mode')).toContainText('nothing is saved to your real counts');
   await expect(page.getByRole('heading', { name: 'Friday bay A sample' })).toBeVisible();
-  const databases = await page.evaluate(async () => (await indexedDB.databases()).map((item) => item.name));
-  expect(databases).toContain('demo:scan-count-pad');
-  expect(databases).not.toContain('scan-count-pad');
+  const sampleCount = page.locator('[data-product-row]').filter({ hasText: 'Brass bolts' }).locator('input[name=count]');
+  await expect(sampleCount).toHaveValue('118');
+  await page.locator('#scan-input').fill('8901001');
+  await page.locator('#scan-input').press('Enter');
+  await expect(sampleCount).toHaveValue('119');
   await page.getByRole('button', { name: 'Reset demo' }).click();
-  await expect(page.getByText('Scanned × 2')).toBeVisible();
+  await expect(sampleCount).toHaveValue('118');
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page.getByRole('heading', { name: 'Real shelf count' })).toBeVisible();
+  await expect(realCount).toHaveValue('1');
 });
 
 test('@claim:local-data keeps the demo flow on the product origin', async ({ page }) => {
