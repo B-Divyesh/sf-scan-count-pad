@@ -53,15 +53,21 @@ test('has no serious accessibility violations on onboarding and legal pages', as
 });
 
 test('browser Back and Forward focus and announce the restored route heading', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 400 });
   await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: /Count stock at the shelf/ })).toBeVisible();
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
   await page.locator('footer').getByRole('link', { name: 'Privacy' }).click();
 
   await expect(page).toHaveURL(/\/privacy$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeFocused();
   await expect(page.locator('#announcer')).toHaveText('Privacy — Scan Count Pad');
 
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
   await expect(page.getByRole('heading', { level: 1, name: /Count stock at the shelf/ })).toBeFocused();
   await expect(page.locator('#announcer')).toHaveText('Scan Count Pad — offline shelf counts');
 

@@ -226,10 +226,10 @@ function render(): void {
 
 function completeRouteChange(resetScroll = false): void {
   render();
-  if (resetScroll) scrollTo(0, 0);
   const heading = document.querySelector<HTMLElement>('h1');
   heading?.setAttribute('tabindex', '-1');
-  heading?.focus({ preventScroll: !resetScroll });
+  heading?.focus({ preventScroll: true });
+  if (resetScroll) scrollTo(0, 0);
   announce(document.title);
 }
 
