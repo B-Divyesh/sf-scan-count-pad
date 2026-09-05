@@ -1,18 +1,18 @@
-# Scan Count Pad — verification 3 handoff
+# Scan Count Pad — review 2 handoff
 
-**Status: PASS**
+**Status: FAIL**
 
-- Work order: `scan-count-pad-verify-3`
+- Work order: `scan-count-pad-review-2`
 - Job: count stock at the shelf.
 - Audience: small shops using phones or Bluetooth scanners.
 - First action: **Try it with sample data**.
 - Implementation SHA: `8a8b8a15bffbe0bb260d02a5e4cd5fcb736dc168`
-- Documentation baseline: `822fe343c2414ca5f3af1e3cfa4068b2f9015dc6`
+- Documentation baseline: `8da5ae125ebba2c33cca400f39d26a5ac4ecbb90`
 - Live URL: <https://scan-count-pad.sociobot.in>
 - Deployment ID reviewed: `a0b3f3cd-6e89-4199-94d1-7fc108528492`
-- Findings: 0
+- Findings: 1 medium (`R2-01`: missing `nav` landmark and header navigation)
 - Untested public claims: 0
-- Full report: [verification-3.md](verification-3.md)
+- Full report: [review-2.md](review-2.md)
 
 ## What was verified
 
@@ -27,6 +27,7 @@
 - Lighthouse mobile scored 100/100/100/100 with 1.2 s LCP.
 - All 23 served files matched the local candidate build. Security headers, immutable asset caching, license response behavior, rate limiting, and checkout redirect passed.
 - Every earlier finding R1-01 and V-01 through V-06 is independently resolved.
+- The strict review found `R2-01`: the shared header has no semantic `nav` or header links to Demo and Privacy. This fails the accessibility and site-structure contracts; add a labelled primary navigation landmark to all shared pages, then retest keyboard and phone behavior.
 
 ## Run again
 
@@ -50,4 +51,4 @@ node .factory/qa-live-pwa.mjs
 
 ## Remaining field validation
 
-Physical Bluetooth scanner and field camera combinations still need shop-floor testing. The brief's 40%-faster measure needs a human comparison against spreadsheet entry. These are not public claims and did not create a verification finding.
+Physical Bluetooth scanner and field camera combinations still need shop-floor testing. The brief's 40%-faster measure needs a human comparison against spreadsheet entry. These are not public claims. The required repair is R2-01, documented in [review-2.md](review-2.md).
