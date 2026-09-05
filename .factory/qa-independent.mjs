@@ -39,6 +39,12 @@ async function mainFlow(browser) {
   equal(await page.locator('main').count(), 1, 'one main');
   equal(await page.locator('h1').count(), 1, 'one h1');
   equal(await page.locator('img:not([alt])').count(), 0, 'all images have alt');
+  const primaryNav = page.getByRole('navigation', { name: 'Primary' });
+  await primaryNav.waitFor();
+  equal(await primaryNav.getByRole('link', { name: 'Demo' }).count(), 1, 'primary navigation exposes Demo');
+  equal(await primaryNav.getByRole('link', { name: 'Privacy' }).count(), 1, 'primary navigation exposes Privacy');
+  const navTargets = await primaryNav.locator('a').evaluateAll((links) => links.map((link) => link.getBoundingClientRect().height));
+  ok(navTargets.every((height) => height >= 44), 'primary navigation links meet 44px touch target height');
   await axe(page, 'local onboarding desktop');
 
   await page.keyboard.press('Tab');

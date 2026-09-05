@@ -64,6 +64,10 @@ function shell(content: string): string {
         <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 8h38v7H5zm0 13h28v7H5zm0 13h38v7H5z"/><path class="beam" d="m2 41 43-20 2 5L4 46z"/></svg>
         <span>Scan / Count / Pad</span>
       </a>
+      <nav class="primary-nav" aria-label="Primary">
+        <a href="/demo">Demo</a>
+        <a href="/privacy" data-nav>Privacy</a>
+      </nav>
       <div class="header-actions">
         <span class="connection ${online ? 'online' : 'offline'}"><i></i>${online ? 'Ready offline' : 'Offline'}</span>
         <button class="quiet-button" type="button" data-open-license>${license.valid ? 'License active' : 'Unlock'}</button>
@@ -72,7 +76,7 @@ function shell(content: string): string {
     ${content}
     <footer>
       <p>Counts stay on this device. <span aria-hidden="true">◇</span> <a href="/privacy" data-nav>Privacy</a> <a href="/terms" data-nav>Terms</a></p>
-      <p>Original generated shelf artwork · Built by Param Factory · v1.0.2</p>
+      <p>Original generated shelf artwork · Built by Param Factory · v1.0.3</p>
     </footer>
     <div id="announcer" class="sr-only" aria-live="polite"></div>
     <div id="update-toast" class="toast" hidden><span>An app update is ready.</span><button type="button" data-reload>Reload</button></div>

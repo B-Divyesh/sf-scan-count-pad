@@ -49,7 +49,38 @@ test('has no serious accessibility violations on onboarding and legal pages', as
   await page.goto('/terms');
   results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
+  await page.goto('/404.html');
+  results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact || ''))).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test('primary navigation gives keyboard access to Demo and Privacy on every page', async ({ page }) => {
+  for (const path of ['/', '/demo', '/privacy', '/terms', '/404.html']) {
+    await page.goto(path);
+    const navigation = page.getByRole('navigation', { name: 'Primary' });
+    await expect(navigation).toBeVisible();
+    const demo = navigation.getByRole('link', { name: 'Demo' });
+    const privacy = navigation.getByRole('link', { name: 'Privacy' });
+    await expect(demo).toBeVisible();
+    await expect(privacy).toBeVisible();
+    for (const link of [demo, privacy]) {
+      const box = await link.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
+
+    await demo.focus();
+    await expect(demo).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/demo$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Friday bay A sample' })).toBeVisible();
+
+    await privacy.focus();
+    await expect(privacy).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/privacy$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeFocused();
+  }
 });
 
 test('browser Back and Forward focus and announce the restored route heading', async ({ page }) => {

@@ -1,5 +1,22 @@
-html { background: #10131c; color: #f4eeda; font: 16px/1.5 system-ui, sans-serif; }
-main { max-width: 42rem; margin: 12vh auto; padding: 2rem; border-top: 5px solid #ff674d; background: #191e2a; }
-h1 { margin: .25rem 0 1rem; font-size: clamp(2.5rem, 8vw, 4.5rem); line-height: 1; text-transform: uppercase; }
-a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px; background: #ff674d; color: #1a0d09; font-weight: 800; }
+:root { color-scheme: dark; background: #10131c; color: #f4eeda; font: 16px/1.5 system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { min-width: 320px; min-height: 100vh; margin: 0; background: #10131c; color: #f4eeda; }
+a { color: #71d7ae; text-underline-offset: 4px; }
 a:focus-visible { outline: 3px solid #f1c35a; outline-offset: 3px; }
+.skip-link { position: fixed; z-index: 100; top: 8px; left: 8px; padding: 12px 16px; background: #f4eeda; color: #10131c; transform: translateY(-150%); }
+.skip-link:focus { transform: none; }
+.site-header { display: flex; align-items: center; gap: 20px; min-height: 80px; padding: 12px max(24px, calc((100vw - 1440px) / 2)); border-bottom: 1px solid #343a48; }
+.wordmark { display: flex; align-items: center; gap: 12px; color: #f4eeda; font-family: "Arial Narrow", Impact, sans-serif; font-weight: 900; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
+.wordmark svg { width: 38px; height: 38px; fill: #f4eeda; }
+.wordmark .beam { fill: #ff674d; }
+.primary-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.primary-nav a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 10px; color: #f4eeda; font-size: .9rem; font-weight: 800; text-decoration-color: #5f6878; }
+.primary-nav a:hover { color: #71d7ae; text-decoration-color: currentColor; }
+main { max-width: 42rem; min-height: calc(100vh - 228px); margin: 12vh auto; padding: 2rem; border-top: 5px solid #ff674d; background: #191e2a; }
+h1 { margin: .25rem 0 1rem; font: 900 clamp(2.5rem, 8vw, 4.5rem)/1 "Arial Narrow", Impact, sans-serif; text-transform: uppercase; }
+.back-link { display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px; background: #ff674d; color: #1a0d09; font-weight: 800; text-decoration: none; }
+footer { display: flex; justify-content: space-between; gap: 24px; padding: 28px max(24px, calc((100vw - 1440px) / 2)); border-top: 1px solid #343a48; color: #b9b3a3; font-size: .83rem; }
+footer p { margin: 0; }
+footer a { margin-left: 12px; }
+@media (max-width: 700px) { .site-header { gap: 6px; min-height: 68px; padding: 10px 16px; } .wordmark span { font-size: .78rem; } .wordmark svg { width: 32px; height: 32px; } .primary-nav { gap: 0; } .primary-nav a { padding: 8px; font-size: .82rem; } main { min-height: calc(100vh - 248px); margin: 48px 18px; padding: 1.5rem; } footer { display: grid; padding: 24px 18px; } }
+@media (max-width: 400px) { .wordmark span { display: none; } .primary-nav a { padding: 7px 6px; } }
