@@ -1,6 +1,6 @@
 # Copy audit
 
-Audited 2026-09-05 against the complete rendered landing page and persistent site chrome. Word counts treat hyphenated terms and numbers as one word.
+Audited 2026-09-06 against the complete rendered landing page and persistent site chrome. Word counts treat hyphenated terms and numbers as one word.
 
 | Copy | Words | Result |
 | --- | ---: | --- |
@@ -34,7 +34,7 @@ Audited 2026-09-05 against the complete rendered landing page and persistent sit
 | Terms | 1 | Pass |
 | Original generated shelf artwork | 4 | Pass |
 | Built by Param Factory | 4 | Pass |
-| v1.0.3 | 1 | Pass |
+| v1.0.4 | 1 | Pass |
 
 No audited sentence exceeds 22 words. No audited sentence contains a banned marketing word, metaphor, or mood heading.
 
