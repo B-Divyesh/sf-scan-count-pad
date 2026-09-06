@@ -7,6 +7,7 @@ import { EMPTY_DATA, type AppData, type CountSession, type Product, type Unknown
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const demoMode = location.pathname.replace(/\/$/, '') === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
+const SESSION_ARCHIVE_AVAILABLE = 'Your session archive is available.';
 let data: AppData = structuredClone(EMPTY_DATA);
 let license: LicenseState = cachedLicense();
 let lastResult: { kind: 'good' | 'warn'; text: string; eventId?: string } | undefined;
@@ -76,7 +77,7 @@ function shell(content: string): string {
     ${content}
     <footer>
       <p>Counts stay on this device. <span aria-hidden="true">◇</span> <a href="/privacy" data-nav>Privacy</a> <a href="/terms" data-nav>Terms</a></p>
-      <p>Original generated shelf artwork · Built by Param Factory · v1.0.3</p>
+      <p>Original generated shelf artwork · Built by Param Factory · v1.0.4</p>
     </footer>
     <div id="announcer" class="sr-only" aria-live="polite"></div>
     <div id="update-toast" class="toast" hidden><span>An app update is ready.</span><button type="button" data-reload>Reload</button></div>
@@ -450,7 +451,7 @@ async function prepareNewSession(): Promise<void> { data.activeSessionId = undef
 
 async function handleRestoreLicense(event: Event): Promise<void> {
   event.preventDefault(); const token = new FormData(event.currentTarget as HTMLFormElement).get('token')?.toString().trim(); if (!token) return;
-  restoreLicense(token); license = await verifyLicense(token); render(); document.querySelector<HTMLDialogElement>('#license-dialog')?.showModal(); announce(license.valid ? 'License verified. Bench unlocked.' : 'That license could not be verified.');
+  restoreLicense(token); license = await verifyLicense(token); render(); document.querySelector<HTMLDialogElement>('#license-dialog')?.showModal(); announce(license.valid ? `License verified. ${SESSION_ARCHIVE_AVAILABLE}` : 'That license could not be verified.');
 }
 
 async function startCamera(): Promise<void> {
@@ -490,7 +491,7 @@ async function init(): Promise<void> {
   try { data = await loadData(demoMode); } catch { data = structuredClone(EMPTY_DATA); }
   if (demoMode && !data.products.length) { data = sampleData(); await persist(); }
   render();
-  if (token) { license = await verifyLicense(token); render(); announce(license.valid ? 'Purchase restored. Bench unlocked.' : 'License could not be verified.'); }
+  if (token) { license = await verifyLicense(token); render(); announce(license.valid ? `Purchase restored. ${SESSION_ARCHIVE_AVAILABLE}` : 'License could not be verified.'); }
   if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register('/sw.js').then((registration) => {
       registration.addEventListener('updatefound', () => {

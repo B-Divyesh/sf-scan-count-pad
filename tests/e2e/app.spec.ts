@@ -229,7 +229,7 @@ test('@claim:camera-local requests the camera only on demand and stops its track
   expect([...origins]).toEqual(['http://127.0.0.1:4173']);
 });
 
-test('@claim:license-unlock @claim:paid-price caches a valid license and honors Retry-After', async ({ page }) => {
+test('@claim:license-unlock @claim:paid-price announces when a valid license makes the session archive available and honors Retry-After', async ({ page }) => {
   let response: 'valid' | 'limited' = 'valid';
   let requests = 0;
   await page.route('https://api.sociobot.in/**', async (route) => {
@@ -239,7 +239,14 @@ test('@claim:license-unlock @claim:paid-price caches a valid license and honors 
   });
   await page.goto('/?license=sample-valid-license');
   await expect(page.getByRole('button', { name: 'License active' })).toBeVisible();
+  await expect(page.locator('#announcer')).toHaveText('Purchase restored. Your session archive is available.');
   expect(page.url()).not.toContain('license=');
+  await page.waitForTimeout(1100);
+  await page.getByRole('button', { name: 'License active' }).click();
+  await page.locator('#license-token').fill('sample-pasted-license');
+  await page.getByRole('button', { name: 'Verify license' }).click();
+  await expect(page.locator('#announcer')).toHaveText('License verified. Your session archive is available.');
+  await page.getByRole('button', { name: 'Close license window' }).click();
   await page.locator('#csv-file').setInputFiles('tests/fixtures/catalog.csv');
   await page.getByRole('button', { name: 'Import and review' }).click();
   await page.getByRole('button', { name: 'Start counting' }).click();
@@ -261,7 +268,7 @@ test('@claim:license-unlock @claim:paid-price caches a valid license and honors 
     });
   })).toBe(2);
   await page.reload();
-  expect(requests).toBe(1);
+  expect(requests).toBe(2);
 
   await page.waitForTimeout(1100);
   response = 'limited';
@@ -270,7 +277,7 @@ test('@claim:license-unlock @claim:paid-price caches a valid license and honors 
   await expect(page.getByText('Too many license checks. Wait a minute, then try again.')).toBeVisible();
   await expect(page.getByText('$19 one-time license', { exact: false })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy the $19 license' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/scan-count-pad/checkout');
-  expect(requests).toBe(2);
+  expect(requests).toBe(3);
 });
 
 test('@claim:backup-restore exports and restores a local JSON backup', async ({ page }) => {
